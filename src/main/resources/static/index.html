@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow | Modern Todo Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TaskFlow</h1>
+            <p>Elevate your productivity, one task at a time. <small>(v1.1)</small></p>
+        </header>
+
+        <section class="card">
+            <form id="todoForm" class="input-group">
+                <input type="text" id="taskTitle" placeholder="What needs to be done?" required>
+                <div class="input-row">
+                    <textarea id="taskDesc" placeholder="Add some details (optional)..."></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Add Task</button>
+            </form>
+        </section>
+
+        <main id="taskList" class="task-list">
+            <!-- Tasks will be rendered here -->
+            <div class="empty-state">
+                <i data-lucide="clipboard-list"></i>
+                <p>Loading your tasks...</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
