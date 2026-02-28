@@ -32,14 +32,31 @@ Ensure MySQL is running and create the database:
 CREATE DATABASE todo_db;
 ```
 
-### 2. Configuration & Environment Variables
-TaskFlow uses environment variables for secure database configuration. Set these in your system or your deployment platform (e.g., GitHub Actions, Heroku, Vercel):
+### 2. Configuration & Dynamic Environment Variables
+TaskFlow is designed with **modern DevOps principles** in mind. It uses dynamic substitution via `${VARIABLE_NAME:DEFAULT_VALUE}` syntax. This means you can override any setting at runtime without changing the code.
 
+#### Key Variables
 | Variable | Description | Default Value |
 | :--- | :--- | :--- |
 | `SPRING_DATASOURCE_URL` | MySQL Connection URL | `jdbc:mysql://localhost:3306/todo_db...` |
-| `SPRING_DATASOURCE_USERNAME` | Database Username | `root` |
-| `SPRING_DATASOURCE_PASSWORD` | Database Password | `root` |
+| `SPRING_DATASOURCE_USERNAME`| Database Username | `root` |
+| `SPRING_DATASOURCE_PASSWORD`| Database Password | `root` |
+| `PORT` | Web Server Port | `8080` |
+| `HIBERNATE_DDL_AUTO` | DB Schema Strategy | `update` (use `validate` for production) |
+
+#### Three Ways to Pass Variables Dynamically:
+1. **Environment Variables** (Recommended for Docker/Cloud):
+   ```bash
+   export SPRING_DATASOURCE_URL="jdbc:mysql://db_host:3306/db_name"
+   ```
+2. **Command Line Arguments** (Java System Properties):
+   ```bash
+   java -Dspring.datasource.url=jdbc:mysql://db_host:3306/db_name -jar app.jar
+   ```
+3. **Maven Runtime**:
+   ```bash
+   mvn spring-boot:run -Dspring-boot.run.arguments="--spring.datasource.url=jdbc:mysql://db_host:3306/db_name"
+   ```
 
 ### 3. Run the Application
 ```bash
