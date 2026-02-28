@@ -21,6 +21,7 @@ TaskFlow is a premium task management application featuring a glassmorphism SPA 
 | **Backend** | Java 21, Spring Boot 3, Spring Data JPA |
 | **Database** | MySQL 8.4 Server |
 | **Build** | Maven 3.9.12 |
+| **Logic Guide** | [LOGIC.md](LOGIC.md) |
 
 ---
 
@@ -258,6 +259,8 @@ src/main/
 └── resources/
     ├── static/          # Frontend (HTML, CSS, JS)
     └── application.properties # Environment-ready config
+├── LOGIC.md             # Detailed Code Logic & Flow
+└── README.md            # Main Project Documentation
 ```
 
 ---

@@ -1,5 +1,7 @@
 # Todo App: Logic & Communication Flow
 
+[← Back to Main Documentation (README)](README.md)
+
 This document provides a precise mapping of user actions to the specific files and line numbers where the logic is executed.
 
 ---
