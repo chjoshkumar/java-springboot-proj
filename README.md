@@ -38,25 +38,61 @@ TaskFlow is designed with **modern DevOps principles** in mind. It uses dynamic 
 #### Key Variables
 | Variable | Description | Default Value |
 | :--- | :--- | :--- |
-| `SPRING_DATASOURCE_URL` | MySQL Connection URL | `jdbc:mysql://localhost:3306/todo_db...` |
+| `DB_HOST` | Database Hostname | `localhost` |
+| `DB_PORT` | Database Port | `3306` |
+| `DB_NAME` | Database Name | `todo_db` |
 | `SPRING_DATASOURCE_USERNAME`| Database Username | `root` |
 | `SPRING_DATASOURCE_PASSWORD`| Database Password | `root` |
 | `PORT` | Web Server Port | `8080` |
-| `HIBERNATE_DDL_AUTO` | DB Schema Strategy | `update` (use `validate` for production) |
 
 #### Three Ways to Pass Variables Dynamically:
 1. **Environment Variables** (Recommended for Docker/Cloud):
    ```bash
-   export SPRING_DATASOURCE_URL="jdbc:mysql://db_host:3306/db_name"
+   export DB_HOST="db_host"
+   export DB_NAME="db_name"
    ```
 2. **Command Line Arguments** (Java System Properties):
    ```bash
-   java -Dspring.datasource.url=jdbc:mysql://db_host:3306/db_name -jar app.jar
+   java -DDB_HOST=db_host -DDB_NAME=db_name -jar app.jar
    ```
-3. **Maven Runtime**:
-   ```bash
-   mvn spring-boot:run -Dspring-boot.run.arguments="--spring.datasource.url=jdbc:mysql://db_host:3306/db_name"
-   ```
+3. **Kubernetes Pod Spec** (Native K8s way):
+   Pass variables via the `env` section in your deployment manifest.
+
+---
+
+### 📦 Kubernetes Deployment Guide (Cloud Native)
+
+For Kubernetes, your deployment manifest should look like this to ensure the image is **stateless and portable**:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskflow-app
+spec:
+  template:
+    spec:
+      containers:
+      - name: taskflow
+        image: chjoshkumar/java-springboot-proj:latest
+        env:
+        - name: DB_HOST
+          value: "mysql-service" # Internal K8s DNS
+        - name: DB_NAME
+          value: "todo_prod"
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: username
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: password
+```
+
+---
 
 ### 3. Run the Application
 ```bash
