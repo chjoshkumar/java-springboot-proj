@@ -160,56 +160,90 @@ This application is pre-configured to look for these environment variables. If t
 
 ---
 
-## 🏗️ 3-Tier Microservices Architecture (Kubernetes)
+---
 
-In a true DevOps environment, we separate concerns. This project is ready to be deployed as a **3-tier microservices architecture**:
+## ☸️ Kubernetes Deployment Tutorial (3-Tier Microservices)
 
-1.  **Frontend UI Service**: An Nginx container serving static HTML/CSS/JS.
-2.  **Backend API Service**: The Spring Boot application handling business logic.
-3.  **Database Service**: A MySQL instance for persistent storage.
+This section provides a step-by-step guide to deploying TaskFlow as a professional 3-tier architecture (Frontend, Backend, Database) on a Kubernetes cluster (e.g., Minikube, Kind, or DigitalOcean/AWS).
 
-### Layer 1: Database (Storage Layer)
-The database must be deployed first. Use a **StatefulSet** for stable persistence.
-- **Manifest**: `db-deployment.yaml`
-- **Key Practice**: Use **PersistentVolumeClaims (PVC)** to ensure data isn't lost if the Pod restarts.
-
-### Layer 2: Backend API (Logic Layer)
-Connects to Layer 1 using internal K8s DNS.
-- **Manifest**: `backend-deployment.yaml`
-- **Configuration**: Use **Secrets** for `SPRING_DATASOURCE_PASSWORD` and **ConfigMaps** for `DB_HOST` and `DB_NAME`.
-
-### Layer 3: Frontend UI (Presentation Layer)
-A lightweight Nginx container that communicates with the Backend.
-- **Manifest**: `frontend-deployment.yaml`
-- **Step**: Ensure your `app.js` `API_URL` is configured to point to the Backend Service's LoadBalancer or Ingress.
+### 🛠️ Prerequisites
+1.  **A Kubernetes Cluster**: [Minikube](https://minikube.sigs.k8s.io/docs/start/) or [Docker Desktop K8s](https://docs.docker.com/desktop/kubernetes/) enabled.
+2.  **kubectl**: The Kubernetes command-line tool.
+3.  **Docker Hub Account**: To host your microservice images.
 
 ---
 
-### Step-by-Step Deployment Order (Todo)
+### Phase 1: Dockerize & Push (The Images)
+Before deploying, you must build the Docker images for your Frontend and Backend.
 
-- [ ] **Step 1: Create Secrets/ConfigMaps**
-  ```bash
-  kubectl create secret generic db-secret --from-literal=password=your_secure_pw
-  kubectl create configmap app-config --from-literal=DB_HOST=mysql-service --from-literal=DB_NAME=todo_db
-  ```
-- [ ] **Step 2: Deploy Database**
-  Apply your MySQL StatefulSet and Service.
-- [ ] **Step 3: Deploy Backend**
-  Apply your Spring Boot Deployment. It will wait for the DB to be reachable.
-- [ ] **Step 4: Deploy Frontend**
-  Apply your Nginx Deployment.
-- [ ] **Step 5: Setup Ingress**
-  Use an Ingress Controller (like NGINX) to route external traffic to your Frontend and API.
+#### 1. Backend API (Spring Boot)
+- **File**: Create a `Dockerfile` in the root (using `eclipse-temurin:21-jre`).
+- **Build**: `docker build -t <your-username>/taskflow-backend:v1 .`
+- **Push**: `docker push <your-username>/taskflow-backend:v1`
+
+#### 2. Frontend UI (Nginx)
+- **File**: Create a `Dockerfile` in `src/main/resources/static`.
+- **Build**: `docker build -t <your-username>/taskflow-frontend:v1 .`
+- **Push**: `docker push <your-username>/taskflow-frontend:v1`
 
 ---
 
-### 🛡️ Kubernetes Best Practices
+### Phase 2: Deploy to Cluster (The Manifests)
 
-- **Health Checks**: Always define `livenessProbe` and `readinessProbe` so Kubernetes knows when your service is actually ready to handle traffic.
-- **Resource Limits**: Define `requests` and `limits` for CPU and Memory to prevent a single service from crashing the whole node.
-- **Zero-Downtime**: Use `RollingUpdate` strategy to ensure users never see an error during deployment.
-- **Security**: Never hardcode passwords in manifests. Use Kubernetes **Secrets**.
-- **Observability**: Use labels and annotations so you can easily monitor your services with tools like Prometheus and Grafana.
+Follow this **exact order** to ensure services can find each other:
+
+#### Step 1: Create Namespace & Configuration
+Initialize the environment with Secrets and ConfigMaps.
+```bash
+kubectl apply -f k8s/config.yaml
+```
+*   **Verification**: `kubectl get secrets,cm`
+
+#### Step 2: Deploy Database (MySQL)
+Deploy the persistent storage layer.
+```bash
+kubectl apply -f k8s/mysql.yaml
+```
+*   **Verification**: `kubectl get pods -l app=mysql` (Wait until Status is `Running`).
+
+#### Step 3: Deploy Backend API
+Deploy the business logic. It will automatically connect to the `mysql-service`.
+```bash
+kubectl apply -f k8s/backend.yaml
+```
+*   **Verification**: `kubectl get pods -l app=backend`
+
+#### Step 4: Deploy Frontend UI
+Deploy the user interface.
+```bash
+kubectl apply -f k8s/frontend.yaml
+```
+*   **Verification**: `kubectl get pods -l app=frontend`
+
+---
+
+### Phase 3: Access & Verify
+
+#### Way 1: Port Forwarding (Quick Test)
+Run this to access the app on your local machine:
+```bash
+# Access Frontend
+kubectl port-forward svc/frontend-service 8080:80
+```
+Then visit: [http://localhost:8080/](http://localhost:8080/)
+
+#### Way 2: LoadBalancer (Cloud only)
+If you are on AWS/GCP, the `frontend-service` will get an `EXTERNAL-IP`.
+```bash
+kubectl get svc frontend-service
+```
+
+---
+
+### 🛡️ K8s Cluster POV Best Practices
+- **Namespace Isolation**: Deploy to a dedicated namespace (`kubectl create ns todo-app`) instead of `default`.
+- **Scaling**: Increase replicas for the backend: `kubectl scale deployment backend --replicas=3`.
+- **Auto-healing**: Delete a backend pod (`kubectl delete pod <backend-name>`) and watch Kubernetes automatically create a new one to maintain the replica count.
 
 ---
 
