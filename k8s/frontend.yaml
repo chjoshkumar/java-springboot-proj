@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: chjoshkumar/java-springboot-proj-frontend:latest
+        ports:
+        - containerPort: 80
+        # For a separated frontend, API_SERVER_URL should point to the backend service
+        env:
+        - name: API_SERVER_URL
+          value: "http://backend-service:8080"

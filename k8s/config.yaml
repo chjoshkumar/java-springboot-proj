@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  DB_HOST: "mysql-service"
+  DB_PORT: "3306"
+  DB_NAME: "todo_db"
+  PORT: "8080"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-secret
+type: Opaque
+data:
+  # Base64 encoded 'root' for spring.datasource.username and spring.datasource.password
+  username: cm9vdA==
+  password: cm9vdA==
