@@ -1,5 +1,8 @@
 # 🌊 TaskFlow
 
+> [!TIP]
+> **Quick Navigation**: [View Code Logic & Flow Guide (LOGIC.md)](LOGIC.md)
+
 **Elevate your productivity with a modern, full-stack Todo Management System.**
 
 TaskFlow is a premium task management application featuring a glassmorphism SPA frontend and a robust Spring Boot REST API.
