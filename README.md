@@ -158,14 +158,58 @@ This application is pre-configured to look for these environment variables. If t
    git push -u origin main
    ```
 
-### 3. Deployment Flow
-Once your code is on GitHub, you can deploy to platforms like **Render**, **Railway**, or **AWS**:
+---
 
-1. **Database Service**: Create a managed MySQL database (e.g., Aiven, PlanetScale, or shared host).
-2. **Web Service**: Connect your GitHub repo to the platform.
-3. **Build Command**: `mvn clean install -DskipTests`
-4. **Start Command**: `java -jar target/todo-management-0.0.1-SNAPSHOT.jar`
-5. **Set Environment Variables**: In your platform's dashboard, add the keys (`SPRING_DATASOURCE_URL`, etc.) with your production database credentials.
+## 🏗️ 3-Tier Microservices Architecture (Kubernetes)
+
+In a true DevOps environment, we separate concerns. This project is ready to be deployed as a **3-tier microservices architecture**:
+
+1.  **Frontend UI Service**: An Nginx container serving static HTML/CSS/JS.
+2.  **Backend API Service**: The Spring Boot application handling business logic.
+3.  **Database Service**: A MySQL instance for persistent storage.
+
+### Layer 1: Database (Storage Layer)
+The database must be deployed first. Use a **StatefulSet** for stable persistence.
+- **Manifest**: `db-deployment.yaml`
+- **Key Practice**: Use **PersistentVolumeClaims (PVC)** to ensure data isn't lost if the Pod restarts.
+
+### Layer 2: Backend API (Logic Layer)
+Connects to Layer 1 using internal K8s DNS.
+- **Manifest**: `backend-deployment.yaml`
+- **Configuration**: Use **Secrets** for `SPRING_DATASOURCE_PASSWORD` and **ConfigMaps** for `DB_HOST` and `DB_NAME`.
+
+### Layer 3: Frontend UI (Presentation Layer)
+A lightweight Nginx container that communicates with the Backend.
+- **Manifest**: `frontend-deployment.yaml`
+- **Step**: Ensure your `app.js` `API_URL` is configured to point to the Backend Service's LoadBalancer or Ingress.
+
+---
+
+### Step-by-Step Deployment Order (Todo)
+
+- [ ] **Step 1: Create Secrets/ConfigMaps**
+  ```bash
+  kubectl create secret generic db-secret --from-literal=password=your_secure_pw
+  kubectl create configmap app-config --from-literal=DB_HOST=mysql-service --from-literal=DB_NAME=todo_db
+  ```
+- [ ] **Step 2: Deploy Database**
+  Apply your MySQL StatefulSet and Service.
+- [ ] **Step 3: Deploy Backend**
+  Apply your Spring Boot Deployment. It will wait for the DB to be reachable.
+- [ ] **Step 4: Deploy Frontend**
+  Apply your Nginx Deployment.
+- [ ] **Step 5: Setup Ingress**
+  Use an Ingress Controller (like NGINX) to route external traffic to your Frontend and API.
+
+---
+
+### 🛡️ Kubernetes Best Practices
+
+- **Health Checks**: Always define `livenessProbe` and `readinessProbe` so Kubernetes knows when your service is actually ready to handle traffic.
+- **Resource Limits**: Define `requests` and `limits` for CPU and Memory to prevent a single service from crashing the whole node.
+- **Zero-Downtime**: Use `RollingUpdate` strategy to ensure users never see an error during deployment.
+- **Security**: Never hardcode passwords in manifests. Use Kubernetes **Secrets**.
+- **Observability**: Use labels and annotations so you can easily monitor your services with tools like Prometheus and Grafana.
 
 ---
 
